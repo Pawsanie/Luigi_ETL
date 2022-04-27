@@ -9,8 +9,12 @@ from tests_my_beautiful_task import test_output_df, test_output_file_exist
 
 def my_beautiful_task_path_parser(result_successor, dir_list, interested_partition, file_mask):
     """Наследование путей из result_successor."""
-    for flag in result_successor:
-        path_to_table = str.replace(flag.path, '_Validate_Success', '')
+    if result_successor is list or result_successor is tuple:
+        for flag in result_successor:
+            path_to_table = str.replace(flag.path, '_Validate_Success', '')
+            dir_list.append(path_to_table)
+    else:
+        path_to_table = str.replace(result_successor.path, '_Validate_Success', '')
         dir_list.append(path_to_table)
     for parsing_dir in dir_list:  # Парсинг путей.
         for dirs, folders, files in walk(parsing_dir):
