@@ -51,6 +51,10 @@ def my_beautiful_task_data_landing(data_to_landing, day_for_landing, output_path
     if data_type_need == 'parquet':
         parquet_table = Table.from_pandas(data_to_landing)
         parquet.write_table(parquet_table, output_path, use_dictionary=False, compression=None)
+    if data_type_need == 'csv':
+        data_to_csv = data_to_landing.to_csv(index=False)
+        with open(output_path, 'w') as csv_file:
+            csv_file.write(data_to_csv)
     test_output_file_exist(output_path)
     flag = open(flag_path, 'w')
     flag.close()
