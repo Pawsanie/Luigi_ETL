@@ -8,7 +8,11 @@ from tests_my_beautiful_task import test_output_df, test_output_file_exist
 
 
 def my_beautiful_task_path_parser(result_successor, dir_list, interested_partition, file_mask):
-    """Наследование путей из result_successor."""
+    """
+    Path inheritance from result_successor.
+    '''
+    Наследование путей из result_successor.
+    """
     if result_successor is list or result_successor is tuple:
         for flag in result_successor:
             path_to_table = str.replace(flag.path, '_Validate_Success', '')
@@ -16,7 +20,7 @@ def my_beautiful_task_path_parser(result_successor, dir_list, interested_partiti
     else:
         path_to_table = str.replace(result_successor.path, '_Validate_Success', '')
         dir_list.append(path_to_table)
-    for parsing_dir in dir_list:  # Парсинг путей.
+    for parsing_dir in dir_list:  # Path parsing.
         for dirs, folders, files in walk(parsing_dir):
             for file in files:
                 partition_path = f'{dirs}{file}'
@@ -32,7 +36,11 @@ def my_beautiful_task_path_parser(result_successor, dir_list, interested_partiti
 
 
 def my_beautiful_task_data_landing(data_to_landing, day_for_landing, output_path_list, partition_path, file_mask):
-    """Приземление распаршеных данных в виде json, или parquet."""
+    """
+    Landing parsed data as json, csv or parquet.
+    '''
+    Приземление распаршеных данных в виде json, csv, или parquet.
+    """
     data_type_need = file_mask.split('.')
     data_type_need = data_type_need[1]
     output_path = f'{partition_path}/{day_for_landing}'
@@ -64,7 +72,11 @@ def my_beautiful_task_data_landing(data_to_landing, day_for_landing, output_path
 
 
 def my_beautiful_task_data_frame_merge(data_from_files, extract_data):
-    """Объеденяет переданные датафреймы в один, заполняя  NaN пустые ячейки."""
+    """
+    Merges the given dataframes into one, filling empty cells with NaNs.
+    '''
+    Объединяет переданные датафреймы в один, заполняя NaN пустые ячейки.
+    """
     if data_from_files is None:
         data_from_files = extract_data
     else:
@@ -76,31 +88,40 @@ def my_beautiful_task_data_frame_merge(data_from_files, extract_data):
 
 
 def my_beautiful_task_data_table_parser(interested_partition, drop_list, interested_data, file_mask):
-    """Уневерсальное чтение данных из таблиц"""
-    def how_to_extract(*args):  # Определение метода чтения данных для pandas.
+    """
+    Universal reading of data from tables.
+    '''
+    Универсальное чтение данных из таблиц.
+    """
+    def how_to_extract(*args):  # Defining a data read method for pandas.
         how_to_extract_format = None
         if file_mask == '.csv':
             how_to_extract_format = read_csv(*args).astype(str)
         if file_mask == '.json':
             how_to_extract_format = read_json(*args, dtype='int64')
-            # Json требует ручного указания типа вывода для длинных чисел
+            # json requires manual output type for long numbers.
+            # Json требует ручного указания типа вывода для длинных чисел.
         return how_to_extract_format
 
     for key in interested_partition:
         data_from_files = None
         files = interested_partition.get(key)
         files = files.values()
-        for file in files:  # Парсинг таблиц в сырой датафрейм
+        for file in files:  # Parsing tables into a raw dataframe
             if drop_list is not None:
                 extract_data = how_to_extract(file).drop([drop_list], axis=1)
             else:
                 extract_data = how_to_extract(file)
-            data_from_files = my_beautiful_task_data_frame_merge(data_from_files, extract_data)  # Слияние датафреймов
+            data_from_files = my_beautiful_task_data_frame_merge(data_from_files, extract_data)  # Merging dataframes.
         interested_data[key] = data_from_files
 
 
 def nan_pandas_df_converter(can_have_nan):
     """
+    Takes a list, tuple, or string.
+    Converts the strings 'None' and 'NaN' from the given variables to the NunPy NaN data type.
+    Returns a list with an element.
+    '''
     Принимает список, картеж, или строку.
     Конвертирует строки 'None' и 'NaN' из полученных переменных в тип данных NunPy NaN.
     Возвращает список с элементом.
@@ -117,7 +138,11 @@ def nan_pandas_df_converter(can_have_nan):
 
 
 def str_from_argument_converter(element):
-    """Конвертирует строковые значения из аргументов для тасок Luigi, в стандартные значения python."""
+    """
+    Converts string values from Luigi task arguments to standard python values.
+    '''
+    Конвертирует строковые значения из аргументов для тасок Luigi, в стандартные значения python.
+    """
     if element == "NaN":
         element = nan_pandas_df_converter(element)
         element = element[0]
@@ -131,18 +156,25 @@ def str_from_argument_converter(element):
 
 
 def my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list):
-    """Запускает код после наследования путей от прошлой таски."""
+    """
+    Runs code after inheriting paths from the previous task.
+    '''
+    Запускает код после наследования путей от прошлой таски."""
     interested_partition = {}
     dir_list = []
     my_beautiful_task_path_parser(result_successor, dir_list, interested_partition, file_mask)
 
-    interested_data = {}  # Парсинг данных из файлов по путям унаследованным от прошлой таски.
+    interested_data = {}  # Parsing data from files along the paths inherited from the previous task.
     my_beautiful_task_data_table_parser(interested_partition, drop_list, interested_data, file_mask)
     return interested_data
 
 
 def my_beautiful_task_universal_data_landing_part(self, interested_data, partition_path, file_mask):
-    """Запускает код приземления данных для каждой унаслеованной даты."""
+    """
+    Runs data landing code for each inherited date.
+    '''
+    Запускает код приземления данных для каждой унаследованной даты.
+    """
     for key in interested_data:
         data_to_landing = interested_data.get(key)
         day_for_landing = key

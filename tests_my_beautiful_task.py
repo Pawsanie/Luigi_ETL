@@ -1,6 +1,6 @@
 from os import walk, path
 from datetime import date, datetime
-from pandas import DataFrame
+from pandas import DataFrame  # Do not delete!
 
 """
 Данный набор тестов покрывает:
@@ -55,7 +55,7 @@ def error_warp(funk):
 
 def test_external_task_path(arg):
     """
-    Тест передовайномго в параметре пути:
+    Тест передоваймго в параметре пути:
     Прверяет наличие ./YYYY/MM/DD/ в корневом каталоге,
     переданном в аргументе.
     """

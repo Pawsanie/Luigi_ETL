@@ -10,7 +10,11 @@ from tests_my_beautiful_task import test_path_mask_type_for_date, test_external_
 
 
 class ExternalData(ExternalTask):
-    """Обёртки для данных из внешних источников"""
+    """
+    Wrappers for data from external sources.
+    '''
+    Обёртки для данных из внешних источников.
+    """
     task_namespace = 'ExternalData'
     external_data_path = Parameter(significant=True, description='Root path for ExternalData files')
     priority = 200
@@ -36,17 +40,12 @@ class ExternalData(ExternalTask):
         return self.external_data_result
 
 
-"""
-Очередь собирает из источников, в виде (csv таблиц/json словарей) данные, чтобы в итоге:
-1) Удалить все строки сответсвующие параметру transform_parsing_rules_drop.
-2) Удалить часть строк соответсвующую transform_parsing_rules_byte и transform_parsing_rules_vip.
-3) Приземлить данные в parquet.
-"""
-
-
 class ExtractTask(Task):
     """
-    Извлечение данных из источников в виде csv таблиц.
+    Retrieving data from ExternalData sources.
+    Combining into one array.
+    '''
+    Извлечение данных из источников ExternalData.
     Объединение в один массив.
     """
     task_namespace = 'ExtractTask'
@@ -54,7 +53,7 @@ class ExtractTask(Task):
     priority = 100
     extract_file_mask = Parameter(significant=True, description='File type Mask')
     drop_list = ListParameter(significant=False,
-                              default=None)  # Лишние колонки, которые нужно будет дропнуть, в таблицах.
+                              default=None)  # Extra columns that need to be dropped in tables.
     output_path_list = []
 
     def requires(self):
@@ -69,7 +68,7 @@ class ExtractTask(Task):
         test_path_mask_type_for_date(partition_path)
         file_mask = self.extract_file_mask
         test_file_mask_arguments(file_mask)
-        result_successor = self.input()['ExternalData']  # Наследование путей от ExternalTask.
+        result_successor = self.input()['ExternalData']  # Path inheritance from ExternalTask.
         drop_list = self.drop_list
         interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list)
 
@@ -78,7 +77,11 @@ class ExtractTask(Task):
 
 
 class TransformTask(Task):
-    """Очистка данных"""
+    """
+    Data cleansing.
+    '''
+    Очистка данных.
+    """
     task_namespace = 'TransformTask'
     file_to_transform_path = Parameter(significant=True, description='Root path for ExtractTask files')
     transform_file_mask = Parameter(significant=True, description='File type Mask')
@@ -102,13 +105,17 @@ class TransformTask(Task):
     def run(self):
         file_mask = self.transform_file_mask
         test_file_mask_arguments(file_mask)
-        result_successor = self.input()['ExtractTask']  # Наследование путей от ExtractTask.
+        result_successor = self.input()['ExtractTask']  # Path inheritance from ExtractTask.
         interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list=None)
 
         parsing_data = None
         for data in interested_data.values():
             parsing_data = my_beautiful_task_data_frame_merge(parsing_data, data)
-        """Все элементы в transform_parsing_rules_drop будут отсеяны:"""
+        """
+        All elements in transform_parsing_rules_drop will be filtered out.
+        '''
+        Все элементы в transform_parsing_rules_drop будут отсеяны.
+        """
         transform_parsing_rules_drop = self.transform_parsing_rules_drop
         if transform_parsing_rules_drop is not None:
             for element in transform_parsing_rules_drop.keys():
@@ -118,8 +125,11 @@ class TransformTask(Task):
                 rules_drop = parsing_data[~parsing_data.index.isin(rules_drop.index)]
                 parsing_data = rules_drop
         """
+        Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
+        And provided that the string does not contain values from the keys transform_parsing_rules_vip.
+        '''
         Будут отсеяны строки, при совпадении хотя бы одного значения во ВСЕХ ключах transform_parsing_rules_byte.
-        И при условии что срока не сдержит значений из ключей transform_parsing_rules_vip.
+        И при условии что строка не содержит значений из ключей transform_parsing_rules_vip.
         """
         transform_parsing_rules_byte = self.transform_parsing_rules_byte
         transform_parsing_rules_vip = self.transform_parsing_rules_vip
@@ -145,7 +155,7 @@ class TransformTask(Task):
                         if parsing_for_byte_is_in > 0:
                             parsing_for_byte_element_count = parsing_for_byte_element_count+1
                         if parsing_for_byte_count == parsing_for_byte_element_count and parsing_for_byte_count > 0:
-                            parsing_data = parsing_data.drop(parsing_data.index[[index-1]])  # index отсчитывает с 1
+                            parsing_data = parsing_data.drop(parsing_data.index[[index-1]])  # index counts from 1.
             if transform_parsing_rules_vip is not None:
                 parsing_data = my_beautiful_task_data_frame_merge(parsing_data, vip_list)
         partition_path = f"{self.file_to_transform_path}"
@@ -157,7 +167,11 @@ class TransformTask(Task):
 
 
 class LoadTask(Task):
-    """Загрузка данных"""
+    """
+    Landing data.
+    '''
+    Приземление данных.
+    """
     task_namespace = 'LoadTask'
     load_data_path = Parameter(significant=True, description='Root path for LoadTask files')
     load_file_mask = Parameter(significant=True, description='File type Mask')
@@ -174,7 +188,7 @@ class LoadTask(Task):
     def run(self):
         file_mask = self.load_file_mask
         test_file_mask_arguments(file_mask)
-        result_successor = self.input()['TransformTask']  # Наследование путей от TransformTask.
+        result_successor = self.input()['TransformTask']  # Path inheritance from TransformTask.
         interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list=None)
 
         parsing_data = None
