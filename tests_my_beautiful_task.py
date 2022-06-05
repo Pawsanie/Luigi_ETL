@@ -3,46 +3,20 @@ from datetime import date, datetime
 from pandas import DataFrame  # Do not delete!
 
 """
-Данный набор тестов покрывает:
-1) Работа с путями.
-    а) Корректность путей для Luigi task из скрипта luigi_task передаваймых аргументами.
-    {<--ExternalData.ExternalData-external-data-path>,
-    <--ExtractTask.ExtractTask-extract-data-path>,
-    <--TransformTask.TransformTask-date-path-part>,
-    <--LoadTask.LoadTask-load-data-path>}
-        - Существует ли путь передоваймый в аргументе.
-        - Проверка что путь передоваймый в аргументе не содержет '/', в конце.
-        - Наличие не пустой строки в аргументе, передоваймом таске.
-        - Проверка что путь из аргумента это строка.
-        # последние два пункта проверяет сам Luigi дополнительно.
-    б) Корректность путей для ExternalData task.
-        - Все проверки путей для тасок выше.
-        - В правильном ли формате указанны пути до партиций.
-    в) Корректность маски для пути TransformTask, передоваймой в аргументе.
-    {<--TransformTask.TransformTask-date-path-part>}
-        - Проверка что эта маска является датой, в формате '%Y/%m/%d'.
-        # Luigi так же проверяет это сам.
-2) Работа с масками расширения файлов передаваймыми в аргументах.
-{<--ExtractTask.ExtractTask-extract-file-mask>,
-<--TransformTask.TransformTask-transform-file-mask>,
-<--LoadTask.LoadTask-load-file-mask>}
-    а) Проверка что маски из аргументов являются строками.
-    б) Проверка что строки маски не пустые.
-    б) Проверка содержимого строк на корректрые расширения.
-        - Json
-        - parquet
-        - CSV
-3) Работа с файлами и данными.
-    а) Файл для записи был создан.
-    б) К записи готовится не пустой датафрейм.
-    
-Тесты запускаются в процессе работы luigi пайплайна и валят исполнение в случии ошибок, с выводом информации о них  
-в терминал.
+Tests are run while the luigi pipeline is running and crashes if there are errors,
+displaying information about them to the terminal.
+'''
+Тесты запускаются в процессе работы luigi пайплайна и валят исполнение в случии ошибок, 
+с выводом информации о них в терминал.
 """
 
 
 def error_warp(funk):
-    """Декоратор ошибок:"""
+    """
+    Error decorator:
+    '''
+    Декоратор ошибок:
+    """
     print('====================== error: ======================')
     print('')
     print('')
@@ -55,9 +29,13 @@ def error_warp(funk):
 
 def test_external_task_path(arg):
     """
-    Тест передоваймго в параметре пути:
-    Прверяет наличие ./YYYY/MM/DD/ в корневом каталоге,
-    переданном в аргументе.
+    Test passed in the path parameter:
+    Checks for the presence of ./YYYY/MM/DD/
+    in the root directory passed in the argument.
+    '''
+    Тест передаваемого в параметре пути:
+    Проверяет наличие ./YYYY/MM/DD/
+    в корневом каталоге, переданном в аргументе.
     """
     def incorrect_paths_in_dir_error():
         print('Root path <' + arg + '>:')
@@ -85,22 +63,27 @@ def test_external_task_path(arg):
 
 def test_path_mask_type_for_date(arg):
     """
-    Тест передовайномго в параметре пути:
+    Test passed in the path parameter:
+    1) Having a non-empty string in the argument.
+    2) Checking if the path exists.
+    3) Checking the last character in the path.
+    '''
+    Тест передаваемого в параметре пути:
     1) Наличие не пустой строки в аргументе.
     2) Проверка пути на существование.
     3) Проверка последнего символа в пути.
     """
     def path_das_not_exist_error():
-        print('Переданный в качестве параметра Luigi таски путь <' + arg + '> не существует.')
+        print('The path passed as a parameter to Luigi <' + arg + '> does not exist.')
 
     def path_symbol_error():
-        print("В передоваймом Luigi таске аргументе корневом пути, не должно быть символа '/' в конце.")
-        print('Таска сама добавит нужный символ в процессе работы.')
-        print('Текущее значение аргумента пути: <' + arg + '>.')
+        print("The root path argument passed to Luigi must not have a trailing '/'.")
+        print('The task itself will add the desired symbol in the process.')
+        print('The current value of the path argument: <' + arg + '>.')
 
     def path_incorrect_format_error():
-        print('В параметре для корневого каталог Luigi таски ничего не переданно.')
-        print('Либо переданна не строка.')
+        print("Nothing was passed in the parameter for the Luigi task's root directory.")
+        print("Or it's not a string.")
     if len(arg) != 0 and type(arg) is str:
         if not path.exists(arg):
             error_warp(path_das_not_exist_error)
@@ -111,10 +94,14 @@ def test_path_mask_type_for_date(arg):
 
 
 def test_transform_task_time_mask(arg):
-    """Проверяет маску date_path_part на соответсвие дате в формате '%Y/%m/%d'."""
+    """
+    Checks the date_path_part mask against a date in the format '%Y/%m/%d'
+    '''
+    Проверяет маску date_path_part на соответствие дате в формате '%Y/%m/%d'.
+    """
     def mask_error():
-        print('В параметре маски времени для пути TransformTask Luigi таски ничего не переданно.')
-        print("Или в ней не дата в формате '%Y/%m/%d'.")
+        print("Nothing was passed in the time mask parameter for Luigi's TransformTask path.")
+        print("Or it does not contain a date in the format '%Y/%m/%d'.")
     if type(arg) is not date:
         error_warp(mask_error)
     try:
@@ -126,19 +113,20 @@ def test_transform_task_time_mask(arg):
 
 def test_file_mask_arguments(arg):
     """
-    Проверяет что маски файлов в аргументах пайплайна это строки
-    соответсвующие требуемым форматам.
+    Checks that the file masks in the pipeline arguments are strings that match the required formats.
+    '''
+    Проверяет что маски файлов в аргументах пайплайна это строки соответствующие требуемым форматам.
     """
     def is_not_str_error():
-        print('Аргумент полученный в <' + arg + '> не является строкой.')
-        print('Или передан пустой аргумент.')
+        print('The argument received in <' + arg + '> is not a string.')
+        print('Or an empty argument is passed.')
 
     def type_of_arg_is_not_correct():
-        print('Переданный <' + arg + '> аргумент не относится к типам:')
+        print('The passed <' + arg + '> argument is not of type:')
         print('.json')
         print('.csv')
         print('.parquet')
-        print("Или не является расширением файла, в формате '.type'.")
+        print("Or is not a file extension, in the format '.type'.")
     if type(arg) is str and len(arg) != 0:
         if arg != '.json' and arg != '.csv' and arg != '.parquet':
             error_warp(type_of_arg_is_not_correct)
@@ -147,17 +135,25 @@ def test_file_mask_arguments(arg):
 
 
 def test_output_df(arg):
-    """Проверяет что готовищийся к записи в файл pandas DF не пустой."""
+    """
+    Checks that the pandas DF being written to is not empty.
+    '''
+    Проверяет что готовящийся к записи в файл pandas DF не пустой.
+    """
     def df_is_empty():
-        print('К записи был направлен пустой pandas DF.')
+        print('An empty pandas DF was sent to the entry.')
     if len(arg.index) == 0:
         error_warp(df_is_empty)
 
 
 def test_output_file_exist(arg):
-    """Проверяет создался ли файл с результатом работы Luigi таски."""
+    """
+    Checks if a file with the result of Luigi task has been created.
+    '''
+    Проверяет создался ли файл с результатом работы Luigi таски.
+    """
     def file_exist_error():
-        print('Файл с результатом не был создан. Путь:')
+        print('The result file was not created. Path:')
         print(arg)
     try:
         path.exists(arg)
