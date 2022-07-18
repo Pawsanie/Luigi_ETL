@@ -7,7 +7,8 @@ from pyarrow import Table, parquet
 from tests_my_beautiful_task import test_output_df, test_output_file_exist
 
 
-def my_beautiful_task_path_parser(result_successor, dir_list, interested_partition, file_mask):
+def my_beautiful_task_path_parser(result_successor: list or tuple or str, dir_list: list,
+                                  interested_partition: dict[str], file_mask: str):
     """
     Path inheritance from result_successor.
     '''
@@ -35,7 +36,8 @@ def my_beautiful_task_path_parser(result_successor, dir_list, interested_partiti
                         {partition_file: interested_partition_path})
 
 
-def my_beautiful_task_data_landing(data_to_landing, day_for_landing, output_path_list, partition_path, file_mask):
+def my_beautiful_task_data_landing(data_to_landing: dict or DataFrame, day_for_landing: str,
+                                   output_path_list: list, partition_path: str, file_mask: str) -> list[str]:
     """
     Landing parsed data as json, csv or parquet.
     '''
@@ -71,7 +73,7 @@ def my_beautiful_task_data_landing(data_to_landing, day_for_landing, output_path
     return output_path_list
 
 
-def my_beautiful_task_data_frame_merge(data_from_files, extract_data):
+def my_beautiful_task_data_frame_merge(data_from_files: DataFrame or None, extract_data: DataFrame) -> DataFrame:
     """
     Merges the given dataframes into one, filling empty cells with NaNs.
     '''
@@ -87,7 +89,8 @@ def my_beautiful_task_data_frame_merge(data_from_files, extract_data):
     return data_from_files
 
 
-def my_beautiful_task_data_table_parser(interested_partition, drop_list, interested_data, file_mask):
+def my_beautiful_task_data_table_parser(interested_partition: dict[DataFrame], drop_list: list or None,
+                                        interested_data: dict[DataFrame], file_mask: str):
     """
     Universal reading of data from tables.
     '''
@@ -116,7 +119,7 @@ def my_beautiful_task_data_table_parser(interested_partition, drop_list, interes
         interested_data[key] = data_from_files
 
 
-def nan_pandas_df_converter(can_have_nan):
+def nan_pandas_df_converter(can_have_nan: list or tuple or str):
     """
     Takes a list, tuple, or string.
     Converts the strings 'None' and 'NaN' from the given variables to the NunPy NaN data type.
@@ -137,7 +140,7 @@ def nan_pandas_df_converter(can_have_nan):
     return can_have_nan
 
 
-def str_from_argument_converter(element):
+def str_from_argument_converter(element: str) -> str:
     """
     Converts string values from Luigi task arguments to standard python values.
     '''
@@ -155,7 +158,8 @@ def str_from_argument_converter(element):
     return element
 
 
-def my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list):
+def my_beautiful_task_universal_parser_part(result_successor: list or tuple or str,
+                                            file_mask: str, drop_list: list or None) -> dict[DataFrame]:
     """
     Runs code after inheriting paths from the previous task.
     '''
@@ -169,7 +173,8 @@ def my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_li
     return interested_data
 
 
-def my_beautiful_task_universal_data_landing_part(self, interested_data, partition_path, file_mask):
+def my_beautiful_task_universal_data_landing_part(self, interested_data: dict[str: DataFrame],
+                                                  partition_path: str, file_mask: str):
     """
     Runs data landing code for each inherited date.
     '''
