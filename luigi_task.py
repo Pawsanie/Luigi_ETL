@@ -1,7 +1,9 @@
-from luigi import run, Task, LocalTarget, ExternalTask, ListParameter, DateParameter, Parameter, DictParameter
 from os import walk, path
-from pandas import DataFrame
 from datetime import date
+
+from luigi import run, Task, LocalTarget, ExternalTask, ListParameter, DateParameter, Parameter, DictParameter
+from pandas import DataFrame
+
 from my_beautiful_task import my_beautiful_task_data_landing, my_beautiful_task_data_frame_merge, \
     nan_pandas_df_converter, str_from_argument_converter, my_beautiful_task_universal_parser_part, \
     my_beautiful_task_universal_data_landing_part
@@ -12,12 +14,10 @@ from tests_my_beautiful_task import test_path_mask_type_for_date, test_external_
 class ExternalData(ExternalTask):
     """
     Wrappers for data from external sources.
-    '''
-    Обёртки для данных из внешних источников.
     """
     task_namespace = 'ExternalData'
-    external_data_path = Parameter(significant=True, description='Root path for ExternalData files')
     priority = 200
+    external_data_path: str = Parameter(significant=True, description='Root path for ExternalData files')
     external_data_result = []
 
     def output(self):
@@ -31,12 +31,12 @@ class ExternalData(ExternalTask):
         for dirs, folder, files in walk(partition_path):
             interest_partition_path = f'{dirs}/{"_Validate"}'
             if path.isfile(interest_partition_path):
-                partition_dir = str.replace(dirs, partition_path, '')
-                path_of_partition = str.replace(partition_path, partition_dir, '')
+                partition_dir: str = str.replace(dirs, partition_path, '')
+                path_of_partition: str = str.replace(partition_path, partition_dir, '')
                 flag_path = f'{path_of_partition}{partition_dir}/{"_Validate_Success"}'
                 self.external_data_result.append(flag_path)
-                flag_file = open(flag_path, "w")
-                flag_file.close()
+                with open(flag_path, "w"):
+                    pass
         return self.external_data_result
 
 
@@ -44,16 +44,13 @@ class ExtractTask(Task):
     """
     Retrieving data from ExternalData sources.
     Combining into one array.
-    '''
-    Извлечение данных из источников ExternalData.
-    Объединение в один массив.
     """
     task_namespace = 'ExtractTask'
-    extract_data_path = Parameter(significant=True, description='Root path for ExtractTask files')
     priority = 100
-    extract_file_mask = Parameter(significant=True, description='File type Mask')
-    drop_list = ListParameter(significant=False,
-                              default=None)  # Extra columns that need to be dropped in tables.
+    extract_data_path: str = Parameter(significant=True, description='Root path for ExtractTask files')
+    extract_file_mask: str = Parameter(significant=True, description='File type Mask')
+    # Extra columns that need to be dropped in tables.
+    drop_list: list = ListParameter(significant=False, default=None)
     output_path_list = []
 
     def requires(self):
@@ -66,11 +63,14 @@ class ExtractTask(Task):
     def run(self):
         partition_path = f"{self.extract_data_path}"
         test_path_mask_type_for_date(partition_path)
-        file_mask = self.extract_file_mask
+        file_mask: str = self.extract_file_mask
         test_file_mask_arguments(file_mask)
         result_successor = self.input()['ExternalData']  # Path inheritance from ExternalTask.
-        drop_list = self.drop_list
-        interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list)
+        drop_list: list = self.drop_list
+        interested_data: dict[DataFrame] = my_beautiful_task_universal_parser_part(
+            result_successor,
+            file_mask,
+            drop_list)
 
         file_mask = "ExtractTask_result.json"
         my_beautiful_task_universal_data_landing_part(self, interested_data, partition_path, file_mask)
@@ -79,21 +79,22 @@ class ExtractTask(Task):
 class TransformTask(Task):
     """
     Data cleansing.
-    '''
-    Очистка данных.
     """
     task_namespace = 'TransformTask'
-    file_to_transform_path = Parameter(significant=True, description='Root path for ExtractTask files')
-    transform_file_mask = Parameter(significant=True, description='File type Mask')
     priority = 100
+    file_to_transform_path: str = Parameter(significant=True, description='Root path for ExtractTask files')
+    transform_file_mask: str = Parameter(significant=True, description='File type Mask')
+    date_path_part: date = DateParameter(default=date.today())
+    transform_parsing_rules_drop: dict = DictParameter(
+        significant=False, default=None,
+        description='Json obj. with parsing rules (must be dropped)')
+    transform_parsing_rules_byte: dict = DictParameter(
+        significant=False, default=None,
+        description='Json obj. with parsing rules (analise and drope)')
+    transform_parsing_rules_vip: dict = DictParameter(
+        significant=False, default=None,
+        description='Json obj. with parsing rules (Interesting data)')
     output_path_list = []
-    date_path_part = DateParameter(default=date.today())
-    transform_parsing_rules_drop = DictParameter(significant=False, default=None,
-                                                 description='Json obj. with parsing rules (must be droped)')
-    transform_parsing_rules_byte = DictParameter(significant=False, default=None,
-                                                 description='Json obj. with parsing rules (analise and drope)')
-    transform_parsing_rules_vip = DictParameter(significant=False, default=None,
-                                                description='Json obj. with parsing rules (Interesting data)')
 
     def requires(self):
         return {'ExtractTask': ExtractTask()}
@@ -103,20 +104,21 @@ class TransformTask(Task):
             yield LocalTarget(path.join(path_of_flag))
 
     def run(self):
-        file_mask = self.transform_file_mask
+        file_mask: str = self.transform_file_mask
         test_file_mask_arguments(file_mask)
         result_successor = self.input()['ExtractTask']  # Path inheritance from ExtractTask.
-        interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list=None)
+        interested_data: dict[DataFrame] = my_beautiful_task_universal_parser_part(
+            result_successor,
+            file_mask,
+            drop_list=None)
 
         parsing_data = None
         for data in interested_data.values():
-            parsing_data = my_beautiful_task_data_frame_merge(parsing_data, data)
+            parsing_data: DataFrame or None = my_beautiful_task_data_frame_merge(parsing_data, data)
         """
         All elements in transform_parsing_rules_drop will be filtered out.
-        '''
-        Все элементы в transform_parsing_rules_drop будут отсеяны.
         """
-        transform_parsing_rules_drop = self.transform_parsing_rules_drop
+        transform_parsing_rules_drop: dict = self.transform_parsing_rules_drop
         if transform_parsing_rules_drop is not None:
             for element in transform_parsing_rules_drop.keys():
                 rule = transform_parsing_rules_drop.get(element)
@@ -127,9 +129,6 @@ class TransformTask(Task):
         """
         Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
         And provided that the string does not contain values from the keys transform_parsing_rules_vip.
-        '''
-        Будут отсеяны строки, при совпадении хотя бы одного значения во ВСЕХ ключах transform_parsing_rules_byte.
-        И при условии что строка не содержит значений из ключей transform_parsing_rules_vip.
         """
         transform_parsing_rules_byte = self.transform_parsing_rules_byte
         transform_parsing_rules_vip = self.transform_parsing_rules_vip
@@ -169,12 +168,10 @@ class TransformTask(Task):
 class LoadTask(Task):
     """
     Landing data.
-    '''
-    Приземление данных.
     """
     task_namespace = 'LoadTask'
-    load_data_path = Parameter(significant=True, description='Root path for LoadTask files')
-    load_file_mask = Parameter(significant=True, description='File type Mask')
+    load_data_path: str = Parameter(significant=True, description='Root path for LoadTask files')
+    load_file_mask: str = Parameter(significant=True, description='File type Mask')
     priority = 300
     output_path_list = []
 
@@ -186,7 +183,7 @@ class LoadTask(Task):
             yield LocalTarget(path.join(path_of_flag))
 
     def run(self):
-        file_mask = self.load_file_mask
+        file_mask: str = self.load_file_mask
         test_file_mask_arguments(file_mask)
         result_successor = self.input()['TransformTask']  # Path inheritance from TransformTask.
         interested_data = my_beautiful_task_universal_parser_part(result_successor, file_mask, drop_list=None)
