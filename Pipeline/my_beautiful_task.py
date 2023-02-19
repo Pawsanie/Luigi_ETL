@@ -6,7 +6,7 @@ from pandas import DataFrame, read_csv, read_json
 from numpy import NaN
 from pyarrow import Table, parquet
 
-from tests_my_beautiful_task import test_output_df, test_output_file_exist
+from Luigi_ETL.Pipeline.Tasks.Tests.tests_my_beautiful_task import test_output_df, test_output_file_exist
 
 
 def my_beautiful_task_path_parser(result_successor: list or tuple or str, dir_list: list,

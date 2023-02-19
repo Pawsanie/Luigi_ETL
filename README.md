@@ -3,9 +3,6 @@
 ## Disclaimer:
 **Using** some or all of the elements of this code, **You** assume **responsibility for any consequences!**
 
-Saved the repository as a reminder.<br/>
-Requires serious improvement in code extensibility and readability.
-
 ## Description of the pipeline:
 The pipeline collects data from sources, in the form of (csv tables / json dictionaries) data, so that in the end:
 * Collects data from external sources to Luigi targets.
