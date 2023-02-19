@@ -101,6 +101,7 @@ class PathsParser:
         """
         Generate paths for Luigi LocalTargets and output data files.
         """
+        self.output_paths_list: list = []
         for input_partition_path in self.interested_partition.keys():
             date_path_part: str = self.get_data_path_part(
                 input_partition_path=input_partition_path
@@ -110,3 +111,4 @@ class PathsParser:
                 [self.partition_path, date_path_part]
             )
             self.output_paths_list.append(output_partition_path)
+        self.output_paths_list: list[str] = list(set(self.output_paths_list))

@@ -7,7 +7,7 @@ from .External_Data_task import ExternalDataTask
 from .Universal_Luigi_task.Universal_Luigi_task import UniversalLuigiTask
 from .Universal_Luigi_task.Get_Luigi_Config import get_config
 """
-Contents code for ExtractTask task.
+Contents code for Extract task.
 """
 
 
@@ -23,11 +23,11 @@ class ExtractTask(UniversalLuigiTask):
     drop_list: list = ListParameter(significant=False, default=None)
 
     task_namespace: str = 'ExtractTask'
-    file_name: str = 'extract_data_result'
     priority: int = 100
 
     # Task parameters:
-    dependency = 'ExternalData'
+    file_name: str = 'extract_data_result'
+    dependency: str = 'ExternalData'
 
     def requires(self) -> dict:
         """
