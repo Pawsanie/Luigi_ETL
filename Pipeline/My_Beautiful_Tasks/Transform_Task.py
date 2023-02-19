@@ -7,6 +7,9 @@ from .Universal_Luigi_task.Universal_Luigi_task import UniversalLuigiTask
 from .Universal_Luigi_task.Get_Luigi_Config import get_config
 from .Extract_Task import ExtractTask
 from .Tests.tests_my_beautiful_task import test_path_mask_type_for_date, test_file_mask_arguments
+"""
+Contents code for Transform task.
+"""
 
 
 class TransformTask(UniversalLuigiTask):
