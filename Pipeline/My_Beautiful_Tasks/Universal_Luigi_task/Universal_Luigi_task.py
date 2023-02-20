@@ -41,6 +41,7 @@ class UniversalLuigiTask(Task, DataLanding, PathsParser, DataParser):
         """
         Output Luigi.output method for task.
         """
+        self.devnull_legacy_paths()
         result: set = set()
         self.get_targets()
         for dir_path in self.output_paths_list:
@@ -75,3 +76,25 @@ class UniversalLuigiTask(Task, DataLanding, PathsParser, DataParser):
                 data_to_landing=data_to_landing,
                 day_for_landing_path_part=day_for_landing_path_part
             )
+
+    def devnull_legacy_paths(self):
+        """
+        Clear data.
+        """
+        for collection in [
+            self.interested_data,
+            self.interested_partition,
+            self.input_path_list,
+            self.output_paths_list,
+        ]:
+            collection.clear()
+
+    def devnull_legacy_collections(self):
+        """
+        Clear data.
+        """
+        for collection in [
+            self.interested_data,
+            self.interested_partition,
+        ]:
+            collection.clear()

@@ -1,7 +1,10 @@
 from datetime import date
 from configparser import NoOptionError
+from ast import literal_eval
 
 from luigi import Parameter, configuration, DateParameter, DictParameter
+from pandas import DataFrame
+from numpy import NaN
 
 from .Universal_Luigi_task.Universal_Luigi_task import UniversalLuigiTask
 from .Universal_Luigi_task.Get_Luigi_Config import get_config
@@ -40,27 +43,28 @@ class TransformTask(UniversalLuigiTask):
     def requires(self):
         return {self.dependency: ExtractTask()}
 
+    def data_frame_filter(self, parsing_data: DataFrame | None):
+        """
+        All elements in transform_parsing_rules_drop will be filtered out.
+        """
+        transform_parsing_rules_drop: dict = self.transform_parsing_rules_drop
+        if transform_parsing_rules_drop is not None:
+            for element in transform_parsing_rules_drop.keys():
+                rule: list[str] = transform_parsing_rules_drop.get(element)
+                rule: list[str, NaN] = self.nan_pandas_df_converter(rule)
+                rules_drop = parsing_data[parsing_data[element].isin(rule)]
+                rules_drop = parsing_data[~parsing_data.index.isin(rules_drop.index)]
+                parsing_data = rules_drop
+        return parsing_data
+
     def run(self):
         ...
-        # interested_data: dict[DataFrame] = my_beautiful_task_universal_parser_part(
-        #     result_successor,
-        #     file_mask,
-        #     drop_list=None)
-        #
+        # self.task_universal_parser_part()
+
         # parsing_data = None
-        # for data in interested_data.values():
-        #     parsing_data: DataFrame or None = my_beautiful_task_data_frame_merge(parsing_data, data)
-        # """
-        # All elements in transform_parsing_rules_drop will be filtered out.
-        # """
-        # transform_parsing_rules_drop: dict = self.transform_parsing_rules_drop
-        # if transform_parsing_rules_drop is not None:
-        #     for element in transform_parsing_rules_drop.keys():
-        #         rule = transform_parsing_rules_drop.get(element)
-        #         rule = nan_pandas_df_converter(rule)
-        #         rules_drop = parsing_data[parsing_data[element].isin(rule)]
-        #         rules_drop = parsing_data[~parsing_data.index.isin(rules_drop.index)]
-        #         parsing_data = rules_drop
+        # for data in self.interested_data.values():
+        #     parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
+        # self.data_frame_filter(parsing_data)
         # """
         # Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
         # And provided that the string does not contain values from the keys transform_parsing_rules_vip.
@@ -135,22 +139,28 @@ def transform_config() -> dict[str, configuration]:
 
     try:
         config_result.update(
-            {"transform_parsing_rules_drop": config.get('TransformTask', 'transform_parsing_rules_drop')}
-        )
+            {"transform_parsing_rules_drop":
+                literal_eval(
+                    config.get('TransformTask', 'transform_parsing_rules_drop')[1:-1:]
+                )})
     except NoOptionError:
         config_result.update({"transform_parsing_rules_drop": None})
 
     try:
         config_result.update(
-            {"transform_parsing_rules_byte": config.get('TransformTask', 'transform_parsing_rules_byte')}
-        )
+            {"transform_parsing_rules_byte":
+                literal_eval(
+                    config.get('TransformTask', 'transform_parsing_rules_byte')[1:-1:]
+                )})
     except NoOptionError:
         config_result.update({"transform_parsing_rules_byte": None})
 
     try:
         config_result.update(
-            {"transform_parsing_rules_vip": config.get('TransformTask', 'transform_parsing_rules_vip')}
-        )
+            {"transform_parsing_rules_vip":
+                literal_eval(
+                    config.get('TransformTask', 'transform_parsing_rules_vip')[1:-1:]
+                )})
     except NoOptionError:
         config_result.update({"transform_parsing_rules_vip": None})
 
