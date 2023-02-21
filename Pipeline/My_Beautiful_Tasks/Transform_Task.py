@@ -47,9 +47,8 @@ class TransformTask(UniversalLuigiTask):
 
     def data_frame_filter(self):
         """
-        All elements in transform_parsing_rules_drop will be filtered out.
         All DataFrame rows will be filtered out if all conditions are satisfied:
-        1) DataFrame column name is key of parameter dictionary.
+        1) DataFrame column name is key of transform_parsing_rules_drop parameter dictionary.
         2) Row cell value of this column in list of dictionary key value.
 
         Example: {'column_name': ['element_from_list_in_column_values'], ...}
@@ -128,6 +127,7 @@ class TransformTask(UniversalLuigiTask):
         test_file_mask_arguments(self.output_file_mask)
         self.input_file_mask: str = self.extract_file_mask
         test_file_mask_arguments(self.input_file_mask)
+        self.parsing_data: None = None
         # Input path:
         self.result_successor = self.input()[self.dependency]
 
