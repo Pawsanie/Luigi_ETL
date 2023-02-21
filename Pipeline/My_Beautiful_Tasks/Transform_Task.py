@@ -40,22 +40,28 @@ class TransformTask(UniversalLuigiTask):
     # Task parameters:
     file_name: str = 'transform_data_result'
     dependency: str = 'Extract'
+    parsing_data: DataFrame | None = None
 
     def requires(self):
         return {self.dependency: ExtractTask()}
 
-    def data_frame_filter(self, parsing_data: DataFrame | None):
+    def data_frame_filter(self):
         """
         All elements in transform_parsing_rules_drop will be filtered out.
+        All DataFrame rows will be filtered out if all conditions are satisfied:
+        1) DataFrame column name is key of parameter dictionary.
+        2) Row cell value of this column in list of dictionary key value.
+
+        Example: {'column_name': ['element_from_list_in_column_values'], ...}
         """
         transform_parsing_rules_drop: dict = self.transform_parsing_rules_drop
         if transform_parsing_rules_drop is not None:
             for element in transform_parsing_rules_drop.keys():
                 rule: list[str] = transform_parsing_rules_drop.get(element)
                 rule: list[str, NaN] = self.nan_pandas_df_converter(rule)
-                rules_drop = parsing_data[parsing_data[element].isin(rule)]
-                rules_drop = parsing_data[~parsing_data.index.isin(rules_drop.index)]
-                parsing_data = rules_drop
+                rules_drop = self.parsing_data[self.parsing_data[element].isin(rule)]
+                rules_drop = self.parsing_data[~self.parsing_data.index.isin(rules_drop.index)]
+                self.parsing_data = rules_drop
 
     def get_drop_list(self):
         ...
@@ -66,10 +72,9 @@ class TransformTask(UniversalLuigiTask):
         self.task_universal_parser_part()
 
         # Drop values in columns by rules from transform_parsing_rules_drop parameter:
-        parsing_data = None
         for data in self.interested_data.values():
-            parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
-        self.data_frame_filter(parsing_data)
+            self.parsing_data: DataFrame or None = self.task_data_frame_merge(self.parsing_data, data)
+        self.data_frame_filter()
         ...
 
         # """
