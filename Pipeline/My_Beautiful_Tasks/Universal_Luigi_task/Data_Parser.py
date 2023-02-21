@@ -9,13 +9,13 @@ Contents code for DataParser.
 
 class DataParser:
     # File format:
-    file_mask: str = ""
+    input_file_mask: str = ""
     # Dictionary with paths from which to read partitions:
     interested_partition: dict = {}
     # Dictionary with partition data for processing:
     interested_data: dict = {}
     # List of columns to be drop during data processing:
-    drop_list: list = []
+    drop_list: list | None = None
 
     def task_data_table_parser(self):
         """
@@ -23,9 +23,9 @@ class DataParser:
         """
         def how_to_extract(*args):  # Defining a data read method for pandas.
             how_to_extract_format = None
-            if self.file_mask == 'csv':
+            if self.input_file_mask == 'csv':
                 how_to_extract_format = read_csv(*args).astype(str)
-            if self.file_mask == 'json':
+            if self.input_file_mask == 'json':
                 how_to_extract_format = read_json(*args, dtype='int64')
                 # json requires manual output type for long numbers.
             return how_to_extract_format

@@ -44,6 +44,7 @@ class Transform(TransformTask):
         return {'Extract': Extract(
             extract_data_path=extract_config()['extract_data_path'],
             extract_file_mask=extract_config()['extract_file_mask'],
+            external_data_file_mask=extract_config()['external_data_file_mask'],
             drop_list=extract_config()['drop_list']
                 )}
 
@@ -60,9 +61,10 @@ class Load(LoadTask):
         return {'Transform': Transform(
             file_to_transform_path=transform_config()['file_to_transform_path'],
             transform_file_mask=transform_config()['transform_file_mask'],
+            extract_file_mask=transform_config()['extract_file_mask'],
             transform_parsing_rules_drop=transform_config()['transform_parsing_rules_drop'],
             transform_parsing_rules_byte=transform_config()['transform_parsing_rules_byte'],
-            transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip']
+            transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip'],
         )}
 
 
@@ -78,15 +80,17 @@ if __name__ == "__main__":
         Extract(
             extract_data_path=extract_config()['extract_data_path'],
             extract_file_mask=extract_config()['extract_file_mask'],
+            external_data_file_mask=extract_config()['external_data_file_mask'],
             drop_list=extract_config()['drop_list']
                 ),
 
         Transform(
             file_to_transform_path=transform_config()['file_to_transform_path'],
             transform_file_mask=transform_config()['transform_file_mask'],
+            extract_file_mask=transform_config()['extract_file_mask'],
             transform_parsing_rules_drop=transform_config()['transform_parsing_rules_drop'],
             transform_parsing_rules_byte=transform_config()['transform_parsing_rules_byte'],
-            transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip']
+            transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip'],
         ),
 
         # Load(

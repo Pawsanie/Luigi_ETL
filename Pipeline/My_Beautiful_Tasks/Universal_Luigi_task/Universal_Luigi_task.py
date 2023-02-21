@@ -14,26 +14,11 @@ class UniversalLuigiTask(Task, DataLanding, PathsParser, DataParser):
     """
     Super class for pipeline.
     """
-    # File format:
-    file_mask: str = ""
-    #
-    day_for_landing: str = ""
-    date_path_part: str = ""
-
     # Luigi local target file:
     success_flag: str = "_Validate_Success"
-    # Local targets from past Luigi Task:
-    result_successor: list[LocalTarget] | tuple[LocalTarget] | LocalTarget = ""
-    # List with paths for processing:
-    input_path_list: list = []
 
-    # Dictionary with paths from which to read partitions:
-    interested_partition: dict = {}
     # Dictionary with partition data for processing:
     interested_data: dict = {}
-    # List of columns to be drop during data processing:
-    drop_list: list = []
-
     # List with paths for data landing:
     output_paths_list: list = []
 
@@ -41,12 +26,20 @@ class UniversalLuigiTask(Task, DataLanding, PathsParser, DataParser):
         """
         Output Luigi.output method for task.
         """
-        self.devnull_legacy_paths()
         result: set = set()
         self.get_targets()
         for dir_path in self.output_paths_list:
             result.add(LocalTarget(f"{dir_path}{sep}{self.success_flag}"))
         return result
+
+    def run(self):
+        """
+        The method must be overridden in every task.
+        luigi.Task.run method.
+        """
+        ...
+        self.get_targets()
+        ...
 
     def get_targets(self):
         """
@@ -76,25 +69,3 @@ class UniversalLuigiTask(Task, DataLanding, PathsParser, DataParser):
                 data_to_landing=data_to_landing,
                 day_for_landing_path_part=day_for_landing_path_part
             )
-
-    def devnull_legacy_paths(self):
-        """
-        Clear data.
-        """
-        for collection in [
-            self.interested_data,
-            self.interested_partition,
-            self.input_path_list,
-            self.output_paths_list,
-        ]:
-            collection.clear()
-
-    def devnull_legacy_collections(self):
-        """
-        Clear data.
-        """
-        for collection in [
-            self.interested_data,
-            self.interested_partition,
-        ]:
-            collection.clear()

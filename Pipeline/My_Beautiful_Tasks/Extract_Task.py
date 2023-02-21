@@ -19,6 +19,7 @@ class ExtractTask(UniversalLuigiTask):
     # Luigi parameters:
     extract_data_path: str = Parameter(significant=True, description='Root path for ExtractTask files')
     extract_file_mask: str = Parameter(significant=True, description='File type Mask')
+    external_data_file_mask: str = Parameter(significant=True, description='File type Mask')
     # Extra columns that need to be dropped in tables:
     drop_list: list = ListParameter(significant=False, default=None)
 
@@ -39,6 +40,7 @@ class ExtractTask(UniversalLuigiTask):
         """
         Run Luigi.run method for extract task.
         """
+        self.get_targets()
         # Arguments parsing:
         self.drop_list: list = self.drop_list
         # Data processing:
@@ -55,8 +57,10 @@ class ExtractTask(UniversalLuigiTask):
         self.partition_path: str = self.extract_data_path
         test_path_mask_type_for_date(self.partition_path)
         # File format:
-        self.file_mask: str = self.extract_file_mask
-        test_file_mask_arguments(self.file_mask)
+        self.output_file_mask: str = self.extract_file_mask
+        test_file_mask_arguments(self.output_file_mask)
+        self.input_file_mask: str = self.external_data_file_mask
+        test_file_mask_arguments(self.input_file_mask)
         # Input path:
         self.result_successor = self.input()[self.dependency]
 
@@ -73,6 +77,7 @@ def extract_config() -> dict[str, configuration]:
     config_result: dict[str, configuration] = {
         "extract_data_path": config.get('ExtractTask', 'extract_data_path'),
         "extract_file_mask": config.get('ExtractTask', 'extract_file_mask'),
+        "external_data_file_mask": config.get('ExtractTask', 'external_data_file_mask'),
     }
     try:
         config_result.update({"drop_list": config.get('ExtractTask', 'drop_list')})

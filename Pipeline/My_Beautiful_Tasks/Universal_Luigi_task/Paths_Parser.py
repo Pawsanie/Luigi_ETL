@@ -14,7 +14,7 @@ class PathsParser:
     Parsing paths for tasks.
     """
     # File format:
-    file_mask: str = ""
+    input_file_mask: str = ""
     # Root path for output processing:
     partition_path: str = ""
     # Date path part:
@@ -32,9 +32,6 @@ class PathsParser:
 
     # List with paths for data landing:
     output_paths_list: list = []
-
-    task_namespace: str = ""
-    file_name: str = ""
 
     def result_successor_path_generator(self):
         """
@@ -59,12 +56,14 @@ class PathsParser:
                      4 as default: '/YYYY/MM/DD/file_name.format'.
         :type tail: int
         """
+        self.interested_partition.clear()
         self.result_successor_path_generator()
+
         for parsing_dir in self.input_path_list:
             for dirs, folders, files in walk(parsing_dir):
                 for file in files:
                     partition_path: str = path.join(dirs, file)
-                    if path.isfile(partition_path) is False or self.file_mask not in file:
+                    if path.isfile(partition_path) is False or self.input_file_mask not in file:
                         continue
 
                     input_path = get_root_path(
@@ -101,7 +100,7 @@ class PathsParser:
         """
         Generate paths for Luigi LocalTargets and output data files.
         """
-        self.output_paths_list.clear()  # delete?
+        self.output_paths_list.clear()
         for input_partition_path in self.interested_partition.keys():
             date_path_part: str = self.get_data_path_part(
                 input_partition_path=input_partition_path

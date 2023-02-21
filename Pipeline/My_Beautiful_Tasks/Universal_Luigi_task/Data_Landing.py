@@ -24,7 +24,7 @@ class DataLanding:
     # File name part:
     file_name: str = ''
     # File format:
-    file_mask: str = ''
+    output_file_mask: str = ''
     # Name of success flag file:
     success_flag: str = ""
 
@@ -92,12 +92,12 @@ class DataLanding:
         if not path.exists(self.output_dir):
             makedirs(self.output_dir)
 
-        self.output_path: str = f"{self.output_dir}{self.file_name}.{self.file_mask}"
-        if self.file_mask == 'json':
+        self.output_path: str = f"{self.output_dir}{self.file_name}.{self.output_file_mask}"
+        if self.output_file_mask == 'json':
             self.json_landing(data_from_files)
-        elif self.file_mask == 'parquet':
+        elif self.output_file_mask == 'parquet':
             self.parquet_landing(data_from_files)
-        elif self.file_mask == 'csv':
+        elif self.output_file_mask == 'csv':
             self.csv_landing(data_from_files)
         test_output_file_exist(self.output_path)
 

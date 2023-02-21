@@ -22,6 +22,7 @@ class TransformTask(UniversalLuigiTask):
     # Luigi parameters:
     file_to_transform_path: str = Parameter(significant=True, description='Root path for ExtractTask files')
     transform_file_mask: str = Parameter(significant=True, description='File type Mask')
+    extract_file_mask: str = Parameter(significant=True, description='File type Mask')
     date_path_part: date = DateParameter(default=date.today())
     transform_parsing_rules_drop: dict = DictParameter(
         significant=False, default=None,
@@ -57,14 +58,19 @@ class TransformTask(UniversalLuigiTask):
                 parsing_data = rules_drop
         return parsing_data
 
-    def run(self):
+    def get_drop_list(self):
         ...
-        # self.task_universal_parser_part()
 
-        # parsing_data = None
-        # for data in self.interested_data.values():
-        #     parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
-        # self.data_frame_filter(parsing_data)
+    def run(self):
+        self.get_targets()
+        self.task_universal_parser_part()
+
+        parsing_data = None
+        for data in self.interested_data.values():
+            parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
+        parsing_data = self.data_frame_filter(parsing_data)
+        ...
+
         # """
         # Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
         # And provided that the string does not contain values from the keys transform_parsing_rules_vip.
@@ -112,8 +118,10 @@ class TransformTask(UniversalLuigiTask):
         self.partition_path: str = self.file_to_transform_path
         test_path_mask_type_for_date(self.partition_path)
         # File format:
-        self.file_mask: str = self.transform_file_mask
-        test_file_mask_arguments(self.file_mask)
+        self.output_file_mask: str = self.transform_file_mask
+        test_file_mask_arguments(self.output_file_mask)
+        self.input_file_mask: str = self.extract_file_mask
+        test_file_mask_arguments(self.input_file_mask)
         # Input path:
         self.result_successor = self.input()[self.dependency]
 
@@ -130,6 +138,7 @@ def transform_config() -> dict[str, configuration]:
     config_result: dict[str, configuration] = {
         "file_to_transform_path": config.get('TransformTask', 'file_to_transform_path'),
         "transform_file_mask": config.get('TransformTask', 'transform_file_mask'),
+        "extract_file_mask": config.get('ExtractTask', 'extract_file_mask')
     }
 
     try:
