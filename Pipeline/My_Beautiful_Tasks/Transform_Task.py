@@ -56,7 +56,6 @@ class TransformTask(UniversalLuigiTask):
                 rules_drop = parsing_data[parsing_data[element].isin(rule)]
                 rules_drop = parsing_data[~parsing_data.index.isin(rules_drop.index)]
                 parsing_data = rules_drop
-        return parsing_data
 
     def get_drop_list(self):
         ...
@@ -70,7 +69,7 @@ class TransformTask(UniversalLuigiTask):
         parsing_data = None
         for data in self.interested_data.values():
             parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
-        parsing_data = self.data_frame_filter(parsing_data)
+        self.data_frame_filter(parsing_data)
         ...
 
         # """
