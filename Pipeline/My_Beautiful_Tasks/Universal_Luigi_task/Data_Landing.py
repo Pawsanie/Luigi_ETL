@@ -92,7 +92,7 @@ class DataLanding:
         if not path.exists(self.output_dir):
             makedirs(self.output_dir)
 
-        self.output_path: str = f"{self.output_dir}{self.file_name}.{self.output_file_mask}"
+        self.output_path: str = f"{self.output_dir}{sep}{self.file_name}.{self.output_file_mask}"
         if self.output_file_mask == 'json':
             self.json_landing(data_from_files)
         elif self.output_file_mask == 'parquet':

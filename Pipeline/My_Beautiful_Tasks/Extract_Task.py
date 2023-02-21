@@ -1,4 +1,5 @@
 from configparser import NoOptionError
+from ast import literal_eval
 
 from luigi import Parameter, ListParameter, configuration
 
@@ -80,7 +81,11 @@ def extract_config() -> dict[str, configuration]:
         "external_data_file_mask": config.get('ExtractTask', 'external_data_file_mask'),
     }
     try:
-        config_result.update({"drop_list": config.get('ExtractTask', 'drop_list')})
+        config_result.update(
+            {"drop_list":
+                literal_eval(
+                    config.get('ExtractTask', 'drop_list')[1:-1:]
+                )})
     except NoOptionError:
         config_result.update({"drop_list": None})
     return config_result

@@ -36,7 +36,7 @@ class DataParser:
             files = files.values()
             for file in files:  # Parsing tables into a raw dataframe
                 if self.drop_list is not None:
-                    extract_data = how_to_extract(file).drop([self.drop_list], axis=1)
+                    extract_data = how_to_extract(file).drop(list(self.drop_list), axis=1)
                 else:
                     extract_data = how_to_extract(file)
                 # Merging dataframes:
