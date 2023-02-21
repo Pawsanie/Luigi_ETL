@@ -56,6 +56,8 @@ class TransformTask(UniversalLuigiTask):
         # Drop values in columns by rules from transform_parsing_rules_drop parameter:
         for data in self.interested_data.values():
             self.parsing_data: DataFrame or None = self.task_data_frame_merge(self.parsing_data, data)
+
+        self.data_frame_filter_drop()
         self.data_frame_filter()
 
         test_path_mask_type_for_date(self.file_to_transform_path)
@@ -70,7 +72,7 @@ class TransformTask(UniversalLuigiTask):
             day_for_landing_path_part=date_path_part
         )
 
-    def data_frame_filter(self):
+    def data_frame_filter_drop(self):
         """
         All DataFrame rows will be filtered out if all conditions are satisfied:
         1) DataFrame column name is key of transform_parsing_rules_drop parameter dictionary.
@@ -87,7 +89,7 @@ class TransformTask(UniversalLuigiTask):
                 rules_drop = self.parsing_data[~self.parsing_data.index.isin(rules_drop.index)]
                 self.parsing_data = rules_drop
 
-    def test(self):
+    def data_frame_filter(self):
         """
         Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
         And provided that the string does not contain values from the keys transform_parsing_rules_vip.
