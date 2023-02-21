@@ -46,9 +46,15 @@ class TransformTask(UniversalLuigiTask):
     parsing_data: DataFrame | None = None
 
     def requires(self):
+        """
+        Dependency Luigi.requires method for transform task.
+        """
         return {self.dependency: ExtractTask()}
 
     def run(self):
+        """
+        Run Luigi.run method for transform task.
+        """
         # Get paths and raw data:
         self.get_targets()
         self.task_universal_parser_part()
