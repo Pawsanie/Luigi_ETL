@@ -62,9 +62,11 @@ class TransformTask(UniversalLuigiTask):
         ...
 
     def run(self):
+        # Get paths and raw data:
         self.get_targets()
         self.task_universal_parser_part()
 
+        # Drop values in columns by rules from transform_parsing_rules_drop parameter:
         parsing_data = None
         for data in self.interested_data.values():
             parsing_data: DataFrame or None = self.task_data_frame_merge(parsing_data, data)
