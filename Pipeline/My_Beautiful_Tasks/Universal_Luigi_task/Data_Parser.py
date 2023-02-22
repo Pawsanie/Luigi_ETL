@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from pandas import DataFrame, read_csv, read_json
+from pandas import DataFrame, read_csv, read_json, concat
 from numpy import NaN
 
 from ..Tests.Logging_Config import text_for_logging
@@ -24,6 +24,8 @@ class DataParser:
         """
         Universal reading of data from tables.
         """
+        self.interested_data.clear()
+
         def how_to_extract(*args):  # Defining a data read method for pandas.
             how_to_extract_format = None
             if self.input_file_mask == 'csv':
@@ -128,7 +130,7 @@ class DataParser:
             new_point_for_merge = extract_data.columns.difference(data_from_files.columns)
             for column in new_point_for_merge:
                 data_from_files.astype(object)[column] = NaN
-            data_from_files = data_from_files.concat(extract_data, join='outer')
+            data_from_files = concat([data_from_files, extract_data], join='outer')
         return data_from_files
 
     def task_merge_with_concatenate(self, data_from_files: DataFrame or None, extract_data: DataFrame) -> DataFrame:
