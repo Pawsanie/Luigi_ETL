@@ -31,7 +31,7 @@ class DataParser:
             if self.input_file_mask == 'csv':
                 how_to_extract_format = read_csv(*args).astype(str)
             if self.input_file_mask == 'json':
-                how_to_extract_format = read_json(*args, dtype='int64')
+                how_to_extract_format = read_json(*args, dtype='int64', convert_dates=False)
                 # json requires manual output type for long numbers.
             return how_to_extract_format
 
