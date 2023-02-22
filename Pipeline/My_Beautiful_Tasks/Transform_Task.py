@@ -2,6 +2,7 @@ from datetime import date
 from configparser import NoOptionError
 from ast import literal_eval
 from os import path, sep
+import logging
 
 from luigi import Parameter, configuration, DateParameter, DictParameter
 from pandas import DataFrame
@@ -13,6 +14,7 @@ from .Extract_Task import ExtractTask
 from .Tests.tests_my_beautiful_task import test_path_mask_type_for_date, test_file_mask_arguments, \
     test_transform_task_time_mask
 from .Universal_Luigi_task.path_for_windows import parsing_date_part_path
+from .Tests.Logging_Config import text_for_logging
 """
 Contents code for Transform task.
 """
@@ -26,16 +28,16 @@ class TransformTask(UniversalLuigiTask):
     file_to_transform_path: str = Parameter(significant=True, description='Root path for ExtractTask files')
     transform_file_mask: str = Parameter(significant=True, description='File type Mask')
     extract_file_mask: str = Parameter(significant=True, description='File type Mask')
-    date_path_part: date = DateParameter(default=date.today())
+    date_parameter: date = DateParameter(default=date.today())
     transform_parsing_rules_drop: dict = DictParameter(
         significant=False, default=None,
-        description='Json obj. with parsing rules (must be dropped)')
+        description='Dictionary with parsing rules (must be dropped)')
     transform_parsing_rules_byte: dict = DictParameter(
         significant=False, default=None,
-        description='Json obj. with parsing rules (analise and drop)')
+        description='Dictionary with parsing rules (analise and drop)')
     transform_parsing_rules_vip: dict = DictParameter(
         significant=False, default=None,
-        description='Json obj. with parsing rules (Interesting data)')
+        description='Dictionary with parsing rules (Interesting data)')
 
     task_namespace: str = 'TransformTask'
     priority: int = 100
@@ -66,11 +68,10 @@ class TransformTask(UniversalLuigiTask):
         self.data_frame_filter_drop()
         self.data_frame_filter()
 
-        test_path_mask_type_for_date(self.file_to_transform_path)
-        test_transform_task_time_mask(self.date_path_part)
+        test_transform_task_time_mask(self.date_parameter)
         date_path_part: str = path.join(
             parsing_date_part_path(
-                self.date_path_part.strftime(f"%Y{sep}%m{sep}%d")
+                self.date_parameter.strftime(f"%Y{sep}%m{sep}%d")
             ))
 
         self.task_data_landing(
@@ -89,11 +90,19 @@ class TransformTask(UniversalLuigiTask):
         transform_parsing_rules_drop: dict = self.transform_parsing_rules_drop
         if transform_parsing_rules_drop is not None:
             for element in transform_parsing_rules_drop.keys():
-                rule: list[str] = transform_parsing_rules_drop.get(element)
-                rule: list[str, NaN] = self.nan_pandas_df_converter(rule)
-                rules_drop = self.parsing_data[self.parsing_data[element].isin(rule)]
-                rules_drop = self.parsing_data[~self.parsing_data.index.isin(rules_drop.index)]
-                self.parsing_data = rules_drop
+                try:
+                    rule: list[str] = transform_parsing_rules_drop.get(element)
+                    rule: list[str, NaN] = self.nan_pandas_df_converter(rule)
+                    rules_drop: DataFrame = self.parsing_data[self.parsing_data[element].isin(rule)]
+                    rules_drop: DataFrame = self.parsing_data[~self.parsing_data.index.isin(rules_drop.index)]
+                    self.parsing_data: DataFrame = rules_drop
+                except KeyError as error:
+                    logging.warning(
+                        text_for_logging(
+                            log_text=
+                            f"Column with key name '{element}' dos not exist in DataFrame.\n"
+                            f"Problem with 'transform_parsing_rules_drop' Luigi.DictParameter...",
+                            log_error=error))
 
     def data_frame_filter(self):
         """
@@ -104,6 +113,7 @@ class TransformTask(UniversalLuigiTask):
         transform_parsing_rules_vip: dict = self.transform_parsing_rules_vip
         vip_list: DataFrame = DataFrame()
         parsing_for_byte_count: int = 0
+
         if transform_parsing_rules_byte is not None:
             for column in self.parsing_data:
                 if column in transform_parsing_rules_byte:
@@ -163,9 +173,9 @@ def transform_config() -> dict[str, configuration]:
     }
 
     try:
-        config_result.update({"date_path_part": config.get('TransformTask', 'date_path_part')})
+        config_result.update({"date_parameter": config.get('TransformTask', 'date_parameter')})
     except NoOptionError:
-        config_result.update({"date_path_part": date.today()})
+        config_result.update({"date_parameter": date.today()})
 
     try:
         config_result.update(

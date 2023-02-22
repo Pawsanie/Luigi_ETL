@@ -2,6 +2,8 @@ import typing
 
 from pandas import DataFrame, read_csv, read_json
 from numpy import NaN
+
+from ..Tests.Logging_Config import text_for_logging
 """
 Contents code for DataParser.
 """
@@ -36,9 +38,23 @@ class DataParser:
             files = files.values()
             for file in files:  # Parsing tables into a raw dataframe
                 if self.drop_list is not None:
-                    extract_data = how_to_extract(file).drop(list(self.drop_list), axis=1)
+                    columns_for_drop: list = []
+                    extract_data: DataFrame = how_to_extract(file)
+                    data_frame_columns: list[str] = list(extract_data.columns)
+
+                    for drop_name in list(self.drop_list):
+                        if drop_name in data_frame_columns:
+                            columns_for_drop.append(drop_name)
+                        else:
+                            text_for_logging(
+                                log_text=
+                                f"Column with name '{drop_name}' dos not exist in DataFrame.\n"
+                                f"Problem with 'drop_list' Luigi.ListParameter...",
+                                log_error=KeyError(drop_name))
+
+                    extract_data: DataFrame = extract_data.drop(columns_for_drop, axis=1)
                 else:
-                    extract_data = how_to_extract(file)
+                    extract_data: DataFrame = how_to_extract(file)
                 # Merging dataframes:
                 data_from_files: DataFrame = self.task_data_frame_merge(data_from_files, extract_data)
             self.interested_data[key] = data_from_files

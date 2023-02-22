@@ -93,10 +93,11 @@ if __name__ == "__main__":
             transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip'],
         ),
 
-        # Load(
-        #     load_data_path=load_config()['load_data_path'],
-        #     load_file_mask=load_config()['load_file_mask']
-        # )
+        Load(
+            load_data_path=load_config()['load_data_path'],
+            load_file_mask=load_config()['load_file_mask'],
+            transform_file_mask=load_config()['transform_file_mask']
+        )
 
     ]
 

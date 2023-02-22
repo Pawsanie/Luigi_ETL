@@ -1,4 +1,5 @@
 import logging
+from traceback import format_exc
 # from imp import reload
 # reload(logging)
 """
@@ -28,3 +29,21 @@ def logging_config(*, log_path: str, log_level: int):
         datefmt='%Y-%m-%d %H:%M:%S %p',
         # force=True
     )
+
+
+def text_for_logging(*, log_text: str, log_error: Exception) -> str:
+    """
+    Wrapper for log text.
+    :param log_text: Arbitrary text for logging.
+    :type log_text: str
+    :param log_error: Custom or standard Exception object..
+    :type log_error: Exception
+    """
+    result_text: str = \
+        f"{'=' * 30}\n"\
+        f"Raise: {repr(log_error)}"\
+        f"\n{log_text}"\
+        f"\n{'-' * 30}"\
+        f"\n{format_exc()}"\
+        f"\n{'=' * 30}\n\n"
+    return result_text

@@ -1,4 +1,4 @@
-from os import path, walk
+from os import path, walk, sep
 from datetime import date
 
 from luigi import LocalTarget
@@ -89,22 +89,21 @@ class PathsParser:
         if self.date_parameter is None:
             date_path_part: str = parsing_date_part_path(input_partition_path)
         else:
-            date_path_part: str = path.join(*[
-                str(self.date_parameter.year),
-                str(self.date_parameter.month),
-                str(self.date_parameter.day)
-            ])
+            date_path_part: str = self.date_parameter.strftime(f"%Y{sep}%m{sep}%d")
         return date_path_part
 
-    def task_output_path_parser(self):
+    def task_output_path_parser(self, all_path_parts: bool = False):
         """
         Generate paths for Luigi LocalTargets and output data files.
         """
         self.output_paths_list.clear()
         for input_partition_path in self.interested_partition.keys():
-            date_path_part: str = self.get_data_path_part(
-                input_partition_path=input_partition_path
-            )
+            if all_path_parts is False:
+                date_path_part: str = self.get_data_path_part(
+                    input_partition_path=input_partition_path
+                )
+            else:
+                date_path_part: str = get_cross_os_path([input_partition_path])
 
             output_partition_path: str = get_cross_os_path(
                 [self.partition_path, date_path_part]

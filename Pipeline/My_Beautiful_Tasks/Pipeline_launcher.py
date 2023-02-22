@@ -1,9 +1,8 @@
 import logging
-from traceback import format_exc
 
 from luigi import build
 
-from .Tests.Logging_Config import logging_config
+from .Tests.Logging_Config import logging_config, text_for_logging
 """
 Contents ETL launch code.
 """
@@ -18,7 +17,7 @@ def pipeline_launcher(tasks_list: list):
     """
     logging_config(
         log_path="logg_file.txt",
-        log_level=40
+        log_level=30
     )
     try:
         build(
@@ -29,10 +28,8 @@ def pipeline_launcher(tasks_list: list):
             workers=1
         )
     except Exception as error:
-        logging.critical(
-            f"{'=' * 30}\n"
-            f"Program launch raise: '{repr(error)}'"
-            f"\n{'-' * 30}"
-            f"\n{format_exc()}"
-            f"\n{'=' * 30}\n\n"
-        )
+        logging.critical(text_for_logging(
+            log_text=
+            f"Program launch raise: '{repr(error)}'",
+            log_error=error
+        ))

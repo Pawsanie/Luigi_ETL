@@ -66,8 +66,8 @@ class ExtractTask(UniversalLuigiTask):
         self.result_successor = self.input()[self.dependency]
 
         # Paths processing:
-        self.task_input_path_parser()
-        self.task_output_path_parser()
+        self.task_input_path_parser(tail=5)
+        self.task_output_path_parser(all_path_parts=True)
 
 
 def extract_config() -> dict[str, configuration]:
