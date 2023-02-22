@@ -63,7 +63,7 @@ class TransformTask(UniversalLuigiTask):
 
         # Drop values in columns by rules from transform_parsing_rules_drop parameter:
         for data in self.interested_data.values():
-            self.parsing_data: DataFrame or None = self.task_data_frame_merge(self.parsing_data, data)
+            self.parsing_data: DataFrame or None = self.task_merge_with_concatenate(self.parsing_data, data)
 
         self.data_frame_filter_drop()
         self.data_frame_filter()

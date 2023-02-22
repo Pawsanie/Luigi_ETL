@@ -1,3 +1,4 @@
+import logging
 import typing
 
 from pandas import DataFrame, read_csv, read_json
@@ -111,3 +112,42 @@ class DataParser:
         if element == 'True':
             element = True
         return element
+
+    def task_data_frame_concatenate(self, data_from_files: DataFrame or None, extract_data: DataFrame) -> DataFrame:
+        """
+        Concatenate the given dataframes into one, filling empty cells with NaNs.
+
+        :param data_from_files: Already extracted data to the data pool.
+        :type data_from_files: None | DataFrame
+        :param extract_data: New extract data for data pull.
+        :type extract_data: DataFrame
+        """
+        if data_from_files is None:
+            data_from_files: DataFrame = extract_data
+        else:
+            new_point_for_merge = extract_data.columns.difference(data_from_files.columns)
+            for column in new_point_for_merge:
+                data_from_files.astype(object)[column] = NaN
+            data_from_files = data_from_files.concat(extract_data, join='outer')
+        return data_from_files
+
+    def task_merge_with_concatenate(self, data_from_files: DataFrame or None, extract_data: DataFrame) -> DataFrame:
+        """
+        Merges the given dataframes into one, if it possible.
+        If is not - concatenate them.
+
+        :param data_from_files: Already extracted data to the data pool.
+        :type data_from_files: None | DataFrame
+        :param extract_data: New extract data for data pull.
+        :type extract_data: DataFrame
+        """
+        try:
+            return self.task_data_frame_merge(data_from_files, extract_data)
+        except ValueError as error:
+            logging.warning(
+                text_for_logging(
+                    log_text=
+                    f"Impossible to merge two DataFrames: try to concatenate...",
+                    log_error=error
+                ))
+            return self.task_data_frame_concatenate(data_from_files, extract_data)
