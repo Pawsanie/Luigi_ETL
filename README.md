@@ -94,10 +94,12 @@ python3 -B -m luigi_pipeline LoadTask.LoadTask --local-scheduler \
 \
 --Extract.Extract-extract-data-path "~/luigi_tasks/ExtractTask" \
 --Extract.Extract-extract-file-mask "csv" \
+--Extract.Extract-external-data-file-mask "csv" \
+--Extract.Extract-drop-list "['drop_name', 'Delete']" \
 \
 --Transform.Transform-file-to-transform-path "~/luigi_tasks/TransformTask" \
 --Transform.Transform-transform-file-mask "json" \
---Transform.Transform-transform-parsing-rules-drop '{"key":["value", "value"]}' \
+--Transform.Transform-transform-parsing-rules-drop "{'column_to_drop': [False, 'NaN', 0]}" \
 --Transform.Transform-transform-parsing-rules-filter "{'column_to_filter': ['drop_if_not_in_vip', 'drop_too'], 'filter_too': ['0']}" \
 --Transform.Transform-transform-parsing-rules-vip "{'data_to_save_like_vip': ['vip_value_1, vip_value_2'], 'save_too': ['vip_value_3']}" \
 --Transform.Transform-date-path-part $(date +%F --date "2022-12-01") \
