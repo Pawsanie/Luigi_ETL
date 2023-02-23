@@ -50,13 +50,13 @@ pip install pyarrow
 ```
 
 ## Description of tasks:
-**ExternalData**:<br/>
+###**ExternalData**:
 Wrappers for data from external sources.<br/>
 * Reads datasets in the directory received from the parameter '**external_data_path**'.<br/>
 :warning:All paths to partitions inside the root directory of the passed ExternalData **must** be in the format '**Dataset_Name/YYYY/MM/DD/**'.<br/>
 * For all partitions where a '**\_Validate**' flag file was found, creates a new '**\_Validate_Success**' flag as Luigi.LocalTarget.
 
-**ExtractTask**:<br/>
+###**ExtractTask**:
 * Reads data from ExternalData by dates.
 * Merges them into one array.
 * If '**drop_list**' parameter is not '**None**' ('None' as default) Task will drop all columns names in this Luigi.ListParameter.<br/>
@@ -66,11 +66,11 @@ Wrappers for data from external sources.<br/>
 ```
 * '**extract_file_mask**' Luigi.Parameter as output file format and '**external_data_file_mask**' as input.
 
-**TransformTask**:<br/>
+###**TransformTask**:
 * Remove all lines matching the transform_parsing_rules_drop parameter.<br/>
 **Example of 'transform_parsing_rules_drop' Luigi.DictParameter:**
 ```json
-{"column_to_drop": [False, "NaN", 0]}
+{"column_to_drop": ["False", "NaN", 0]}
 ```
 * Rows will be discarded if at least one value matches in ALL keys of transform_parsing_rules_filter.<br/>
 **Example of 'transform_parsing_rules_filter' Luigi.DictParameter:**
@@ -85,7 +85,7 @@ Wrappers for data from external sources.<br/>
 * Has 'date_parameter' Luigi.DateParameter (today as default).
 * '**transform_file_mask**' Luigi.Parameter as output file format and '**extract_file_mask**' as input.
 
-**LoadTask**:<br/>
+###**LoadTask**:
 * Landing result data to directory received from the Luigi.Parameter '**load_data_path**'.
 * Has '**date_parameter**' Luigi.DateParameter (today as default).
 * '**load_file_mask**' Luigi.Parameter as output file format and '**transform_file_mask**' as input.
@@ -102,6 +102,8 @@ If you want to use a simple launch by passing Luigi **parameters** through a **c
             └── :file_folder:My_Beautiful_Tasks.py<br>
                      └── :file_folder:Configuration<br>
                               └── :page_facing_up:luigi_config.cfg<br>
+
+Please note that rows with optional parameters can be removed from the 'luigi_config' if you do not need them.
 
 **Example of run script:**
 ```bash
