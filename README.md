@@ -1,7 +1,9 @@
 # Luigi ETL pipeline
 
 ## Disclaimer:
-**Using** some or all of the elements of this code, **You** assume **responsibility for any consequences!**
+:warning:**Using** some or all of the elements of this code, **You** assume **responsibility for any consequences!**<br>
+
+:warning:The **licenses** for the technologies on which the code **depends** are subject to **change by their authors**.<br><br>
 
 ## Description of the pipeline:
 The pipeline collects data from sources, in the form of (csv tables / json dictionaries) data, so that in the end:
@@ -46,6 +48,48 @@ pip install pandas
 pip install numpy
 pip install pyarrow
 ```
+
+## Description of tasks:
+**ExternalData**:<br/>
+Wrappers for data from external sources.<br/>
+* Reads datasets in the directory received from the parameter '**external_data_path**'.<br/>
+:warning:All paths to partitions inside the root directory of the passed ExternalData **must** be in the format '**Dataset_Name/YYYY/MM/DD/**'.<br/>
+* For all partitions where a '**\_Validate**' flag file was found, creates a new '**\_Validate_Success**' flag as Luigi.LocalTarget.
+
+**ExtractTask**:<br/>
+* Reads data from ExternalData by dates.
+* Merges them into one array.
+* If '**drop_list**' parameter is not '**None**' ('None' as default) Task will drop all columns names in this Luigi.ListParameter.<br/>
+**Example of 'drop_list' Luigi.ListParameter:**
+```json
+["drop_name", "Delete"]
+```
+* '**extract_file_mask**' Luigi.Parameter as output file format and '**external_data_file_mask**' as input.
+
+**TransformTask**:<br/>
+* Remove all lines matching the transform_parsing_rules_drop parameter.<br/>
+**Example of 'transform_parsing_rules_drop' Luigi.DictParameter:**
+```json
+{"column_to_drop": [False, "NaN", 0]}
+```
+* Rows will be discarded if at least one value matches in ALL keys of transform_parsing_rules_filter.<br/>
+**Example of 'transform_parsing_rules_filter' Luigi.DictParameter:**
+```json
+{"column_to_filter": ["drop_if_not_in_vip", "drop_too"], "filter_too": ["0"]}
+```
+* And provided that the string does not contain values from the transform_parsing_rules_vip keys.<br/>
+**Example of 'transform_parsing_rules_vip' Luigi.DictParameter:**
+```json
+{"data_to_save_like_vip": ["vip_value_1", "vip_value_2"], "save_too": ["vip_value_3"]}
+```
+* Has 'date_parameter' Luigi.DateParameter (today as default).
+* '**transform_file_mask**' Luigi.Parameter as output file format and '**extract_file_mask**' as input.
+
+**LoadTask**:<br/>
+* Landing result data to directory received from the Luigi.Parameter '**load_data_path**'.
+* Has '**date_parameter**' Luigi.DateParameter (today as default).
+* '**load_file_mask**' Luigi.Parameter as output file format and '**transform_file_mask**' as input.
+
 ## Launch:
 ### Launch with 'luigi_config' and Luigi.build:
 If you want to use a simple launch by passing Luigi **parameters** through a **configuration** file: 
@@ -87,44 +131,28 @@ To launch the pipeline through this script, do not forget to make it executable.
 ```bash
 chmod +x ./start_luigi_etl_pipeline.sh
 ```
-The script can also be run directly with python.
+The script can also be run directly with python.<br/>
+**Example of run script:**
 ```bash
-python3 -B -m luigi_pipeline LoadTask.LoadTask --local-scheduler \
+python3 -B -m luigi_pipeline Load.LoadTask --local-scheduler \
 --ExternalData.ExternalData-external-data-path "~/luigi_tasks/ExternalData" \
 \
---Extract.Extract-extract-data-path "~/luigi_tasks/ExtractTask" \
---Extract.Extract-extract-file-mask "csv" \
---Extract.Extract-external-data-file-mask "csv" \
---Extract.Extract-drop-list "['drop_name', 'Delete']" \
+--Extract.ExtractTask-extract-data-path "~/luigi_tasks/ExtractTask" \
+--Extract.ExtractTask-extract-file-mask "csv" \
+--Extract.ExtractTask-external-data-file-mask "csv" \
+--Extract.ExtractTask-drop-list "['column_drop_name', 'column_to_delete']" \
 \
---Transform.Transform-file-to-transform-path "~/luigi_tasks/TransformTask" \
---Transform.Transform-transform-file-mask "json" \
---Transform.Transform-transform-parsing-rules-drop "{'column_to_drop': [False, 'NaN', 0]}" \
---Transform.Transform-transform-parsing-rules-filter "{'column_to_filter': ['drop_if_not_in_vip', 'drop_too'], 'filter_too': ['0']}" \
---Transform.Transform-transform-parsing-rules-vip "{'data_to_save_like_vip': ['vip_value_1, vip_value_2'], 'save_too': ['vip_value_3']}" \
---Transform.Transform-date-path-part $(date +%F --date "2022-12-01") \
+--Transform.TransformTask-file-to-transform-path "~/luigi_tasks/TransformTask" \
+--Transform.TransformTask-transform-file-mask "json" \
+--Transform.TransformTask-transform-parsing-rules-drop "{'column_to_drop': [False, 'NaN', 0]}" \
+--Transform.TransformTask-transform-parsing-rules-filter "{'column_to_filter': ['drop_if_not_in_vip', 'drop_too'], 'filter_too': ['0']}" \
+--Transform.TransformTask-transform-parsing-rules-vip "{'data_to_save_like_vip': ['vip_value_1, vip_value_2'], 'save_too': ['vip_value_3']}" \
+--Transform.TransformTask-date-path-part $(date +%F --date "2022-12-01") \
 \
---Load.Load-load-data-path "~/luigi_tasks/LoadTask" \
---Load.Load-load-file-mask "parquet"
+--Load.LoadTask-load-data-path "~/luigi_tasks/LoadTask" \
+--Load.LoadTask-load-file-mask "parquet"
 ```
 The example above shows the launch of all tasks.
-## Description of tasks:
-ExternalData:
-* Wrappers for data from external sources.<br/>
-**IMPORTANT!**<br/>
-All paths to partitions inside the root directory of the passed ExternalData must be in the format '**Dataset_Name/YYYY/MM/DD/**'.<br/>
-
-ExtractTask:
-* Reads data from ExternalData.
-* Merges them into one array.
-
-TransformTask:
-* Remove all lines matching the transform_parsing_rules_drop parameter.
-* Rows will be discarded if at least one value matches in ALL keys of transform_parsing_rules_byte.
-* And provided that the string does not contain values from the transform_parsing_rules_vip keys.
-
-LoadTask:
-* Landing data.
 
 ## Tests:
 Tests are embedded inside the pipeline.
