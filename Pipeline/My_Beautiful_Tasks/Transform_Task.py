@@ -32,7 +32,7 @@ class TransformTask(UniversalLuigiTask):
     transform_parsing_rules_drop: dict = DictParameter(
         significant=False, default=None,
         description='Dictionary with parsing rules (must be dropped)')
-    transform_parsing_rules_byte: dict = DictParameter(
+    transform_parsing_rules_filter: dict = DictParameter(
         significant=False, default=None,
         description='Dictionary with parsing rules (analise and drop)')
     transform_parsing_rules_vip: dict = DictParameter(
@@ -46,6 +46,7 @@ class TransformTask(UniversalLuigiTask):
     file_name: str = 'transform_data_result'
     dependency: str = 'Extract'
     parsing_data: DataFrame | None = None
+    vip_list: DataFrame = DataFrame()
 
     def requires(self):
         """
@@ -66,7 +67,7 @@ class TransformTask(UniversalLuigiTask):
             self.parsing_data: DataFrame or None = self.task_merge_with_concatenate(self.parsing_data, data)
 
         self.data_frame_filter_drop()
-        self.data_frame_filter()
+        self.data_frame_parsing()
 
         test_transform_task_time_mask(self.date_parameter)
         date_path_part: str = path.join(
@@ -104,40 +105,55 @@ class TransformTask(UniversalLuigiTask):
                             f"Problem with 'transform_parsing_rules_drop' Luigi.DictParameter...",
                             log_error=error))
 
-    def data_frame_filter(self):
+    def data_frame_parsing(self):
         """
         Rows will be discarded if at least one value matches in ALL transform_parsing_rules_byte keys.
         And provided that the string does not contain values from the keys transform_parsing_rules_vip.
         """
-        transform_parsing_rules_byte: dict = self.transform_parsing_rules_byte
-        transform_parsing_rules_vip: dict = self.transform_parsing_rules_vip
-        vip_list: DataFrame = DataFrame()
-        parsing_for_byte_count: int = 0
+        if self.transform_parsing_rules_filter is None:
+            return
 
-        if transform_parsing_rules_byte is not None:
-            for column in self.parsing_data:
-                if column in transform_parsing_rules_byte:
-                    for index, row in self.parsing_data.iterrows():
-                        if transform_parsing_rules_vip is not None:
-                            for cell in row:
-                                for vip in transform_parsing_rules_vip:
-                                    if cell in transform_parsing_rules_vip.get(vip):
-                                        vip_list: DataFrame = vip_list.append(row, ignore_index=True)
-                        row = row[column]
-                        parsing_for_byte_element_count: int = 0
-                        parsing_for_byte_is_in: int = 0
-                        for element in transform_parsing_rules_byte.get(column):
-                            element = self.str_from_argument_converter(element)
-                            if row == element:
-                                parsing_for_byte_count: int = parsing_for_byte_count+1
-                                parsing_for_byte_is_in: int = parsing_for_byte_is_in+1
-                        if parsing_for_byte_is_in > 0:
-                            parsing_for_byte_element_count: int = parsing_for_byte_element_count+1
-                        if parsing_for_byte_count == parsing_for_byte_element_count and parsing_for_byte_count > 0:
-                            self.parsing_data: DataFrame = \
-                                self.parsing_data.drop(self.parsing_data.index[[index-1]])  # index counts from 1.
-            if transform_parsing_rules_vip is not None:
-                self.parsing_data: DataFrame = self.task_data_frame_merge(self.parsing_data, vip_list)
+        for column in self.parsing_data:
+            if column in self.transform_parsing_rules_filter:
+                for index, row in self.parsing_data.iterrows():
+
+                    self.get_vip_list(row)
+                    self.data_frame_filter(row, column, index)
+
+        if self.transform_parsing_rules_vip is not None and len(self.vip_list) > 0:
+            self.parsing_data: DataFrame = self.task_data_frame_merge(self.parsing_data, self.vip_list)
+
+    def data_frame_filter(self, row, column, index):
+        """
+        Rows will be discarded if at least one value matches in ALL keys of transform_parsing_rules_byte.
+        """
+        parsing_for_byte_count: int = 0
+        parsing_for_byte_element_count: int = 0
+        parsing_for_byte_is_in: int = 0
+
+        row: str = row[column]
+        for element in self.transform_parsing_rules_filter.get(column):
+            element = self.str_from_argument_converter(element)
+            if row == element:
+                parsing_for_byte_count += 1
+                parsing_for_byte_is_in += 1
+        if parsing_for_byte_is_in > 0:
+            parsing_for_byte_element_count += 1
+        if parsing_for_byte_count == parsing_for_byte_element_count and parsing_for_byte_count > 0:
+            self.parsing_data: DataFrame = \
+                self.parsing_data.drop(self.parsing_data.index[[index - 1]])  # index counts from 1.
+
+    def get_vip_list(self, row):
+        """
+        Collects rows that must remain.
+        All strings whose values match any of the 'transform_parsing_rules_vip'
+        dictionary keys values will be stored.
+        """
+        if self.transform_parsing_rules_vip is not None:
+            for cell in row:
+                for vip in self.transform_parsing_rules_vip:
+                    if cell in self.transform_parsing_rules_vip.get(vip):
+                        self.vip_list: DataFrame = self.vip_list.append(row, ignore_index=True)
 
     def get_targets(self):
         """
@@ -188,12 +204,12 @@ def transform_config() -> dict[str, configuration]:
 
     try:
         config_result.update(
-            {"transform_parsing_rules_byte":
+            {"transform_parsing_rules_filter":
                 literal_eval(
-                    config.get('TransformTask', 'transform_parsing_rules_byte')[1:-1:]
+                    config.get('TransformTask', 'transform_parsing_rules_filter')[1:-1:]
                 )})
     except NoOptionError:
-        config_result.update({"transform_parsing_rules_byte": None})
+        config_result.update({"transform_parsing_rules_filter": None})
 
     try:
         config_result.update(

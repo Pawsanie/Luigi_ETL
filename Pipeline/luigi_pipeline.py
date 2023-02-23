@@ -63,7 +63,7 @@ class Load(LoadTask):
             transform_file_mask=transform_config()['transform_file_mask'],
             extract_file_mask=transform_config()['extract_file_mask'],
             transform_parsing_rules_drop=transform_config()['transform_parsing_rules_drop'],
-            transform_parsing_rules_byte=transform_config()['transform_parsing_rules_byte'],
+            transform_parsing_rules_filter=transform_config()['transform_parsing_rules_filter'],
             transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip'],
         )}
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
             transform_file_mask=transform_config()['transform_file_mask'],
             extract_file_mask=transform_config()['extract_file_mask'],
             transform_parsing_rules_drop=transform_config()['transform_parsing_rules_drop'],
-            transform_parsing_rules_byte=transform_config()['transform_parsing_rules_byte'],
+            transform_parsing_rules_filter=transform_config()['transform_parsing_rules_filter'],
             transform_parsing_rules_vip=transform_config()['transform_parsing_rules_vip'],
         ),
 
