@@ -50,13 +50,13 @@ pip install pyarrow
 ```
 
 ## Description of tasks:
-###**ExternalData**:
+### ExternalData:
 Wrappers for data from external sources.<br/>
 * Reads datasets in the directory received from the parameter '**external_data_path**'.<br/>
 :warning:All paths to partitions inside the root directory of the passed ExternalData **must** be in the format '**Dataset_Name/YYYY/MM/DD/**'.<br/>
 * For all partitions where a '**\_Validate**' flag file was found, creates a new '**\_Validate_Success**' flag as Luigi.LocalTarget.
 
-###**ExtractTask**:
+### ExtractTask:
 * Reads data from ExternalData by dates.
 * Merges them into one array.
 * If '**drop_list**' parameter is not '**None**' ('None' as default) Task will drop all columns names in this Luigi.ListParameter.<br/>
@@ -66,7 +66,7 @@ Wrappers for data from external sources.<br/>
 ```
 * '**extract_file_mask**' Luigi.Parameter as output file format and '**external_data_file_mask**' as input.
 
-###**TransformTask**:
+### TransformTask:
 * Remove all lines matching the transform_parsing_rules_drop parameter.<br/>
 **Example of 'transform_parsing_rules_drop' Luigi.DictParameter:**
 ```json
@@ -85,7 +85,7 @@ Wrappers for data from external sources.<br/>
 * Has 'date_parameter' Luigi.DateParameter (today as default).
 * '**transform_file_mask**' Luigi.Parameter as output file format and '**extract_file_mask**' as input.
 
-###**LoadTask**:
+### LoadTask:
 * Landing result data to directory received from the Luigi.Parameter '**load_data_path**'.
 * Has '**date_parameter**' Luigi.DateParameter (today as default).
 * '**load_file_mask**' Luigi.Parameter as output file format and '**transform_file_mask**' as input.
