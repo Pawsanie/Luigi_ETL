@@ -121,7 +121,7 @@ After that, you can start Luigi by passing parameters through the terminal, or u
    └── :file_folder:Pipeline<br>
             ├── :page_facing_up:luigi_pipeline.py<br>
             ├── :page_facing_up:start_luigi_etl_pipeline.sh<br>
-            └── :file_folder:My_Beautiful_Tasks.py<br>
+            └── :file_folder:My_Beautiful_Tasks<br>
                      └── :page_facing_up:Pipeline_launcher.py<br>
 
 If Your OS has a bash shell the ETL pipeline can be started using the bash script:
